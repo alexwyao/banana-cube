@@ -33,11 +33,66 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  for (int k = 0; k < 2; ++k) {
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 2; ++j) {
-      toggle(i,j,k,300);
+  for (int k = 0; k < 4; ++k) {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      toggle(i,j,k,5);
     }
   }
+  }
+
+  for (int k = 0; k < 4; ++k) {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      turnOn(i,j,k);
+    }
+  }
+  delay(500);
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      turnOff(i,j,k);
+    }
+  }
+  }
+
+  
+  for (int j = 0; j < 4; ++j) {
+  for (int i = 0; i < 4; ++i) {
+    for (int k = 0; k < 4; ++k) {
+      turnOn(i,j,k);
+    }
+  }
+  delay(500);
+  for (int i = 0; i < 4; ++i) {
+    for (int k = 0; k < 4; ++k) {
+      turnOff(i,j,k);
+    }
+  }
+  }
+
+  for (int i = 0; i < 4; ++i) {
+  for (int j = 0; j < 4; ++j) {
+    for (int k = 0; k < 4; ++k) {
+      turnOn(i,j,k);
+    }
+  }
+  delay(500);
+  for (int j = 0; j < 4; ++j) {
+    for (int k = 0; k < 4; ++k) {
+      turnOff(i,j,k);
+    }
+  }
+  }
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      for (int k = 0; k < 4; ++k) {
+        turnOn(i,j,k);
+      }
+      delay(200);
+      for (int k = 0; k < 4; ++k) {
+        turnOff(i,j,k);
+      }
+    }
   }
 }

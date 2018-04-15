@@ -23,5 +23,5 @@ void loop() {
   if (!left) Serial.println("Left is pressed");
   if (!right) Serial.println("Right is pressed");
 
-  delay(300);
+  delay(100);
 }

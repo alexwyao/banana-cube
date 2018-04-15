@@ -18,10 +18,10 @@ void loop() {
   int left = digitalRead(4);
   int right = digitalRead(5);
 
-  if (up) Serial.println("Up is pressed");
-  if (down) Serial.println("Down is pressed");
-  if (left) Serial.println("Left is pressed");
-  if (right) Serial.println("Right is pressed");
+  if (!up) Serial.println("Up is pressed");
+  if (!down) Serial.println("Down is pressed");
+  if (!left) Serial.println("Left is pressed");
+  if (!right) Serial.println("Right is pressed");
 
   delay(300);
 }

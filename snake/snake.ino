@@ -25,6 +25,9 @@ Coord * snakeSegments = new Coord[64];
 long mspm = 1000, lastMove = 0; //milliseconds per move
 boolean gameRunning = true;
 
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
+
 int buttonPin1 = 10;
 int buttonPin2 = 8;
 
@@ -189,13 +192,15 @@ void runGame(){
   if (!gameRunning) {
 //    col.setAllLow();
 //    row.setAllHigh();
-    Serial.println("DEAD");
+    //Serial.println("DEAD");
     zeroLedArray(); 
+    resetFunc();
 //    if(updateDirection()){
 //      reset();
 //    }
   }
 }
+
 
 void reset(){
   

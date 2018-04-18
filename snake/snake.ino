@@ -20,7 +20,7 @@ byte ySpeed = 0;
 byte zSpeed = 0;
 byte snakeLength = 1; 
 int initialSpeed = 600;
-Coord snakePosition (0,0,0), foodPosition;
+Coord snakePosition, foodPosition;
 Coord * snakeSegments = new Coord[64];
 long mspm = 1000, lastMove = 0; //milliseconds per move
 boolean gameRunning = true;
@@ -34,6 +34,8 @@ void setup() {
   //LEDS
   Serial.begin(9600);
 
+  randomSeed(analogRead(0));
+
   for (int i = 23; i <= 53; i += 2) {
     pinMode(i, OUTPUT);
     digitalWrite(i, HIGH);
@@ -43,12 +45,6 @@ void setup() {
     pinMode(i, OUTPUT);
     digitalWrite(i, LOW);
   }
-
-
-  //JoyStick
-//  for (int i = 2; i <= 5; ++i) {
-//    pinMode(i, INPUT_PULLUP);
-//  }
 
   pinMode(28, INPUT_PULLUP);
   pinMode(30, INPUT_PULLUP);
@@ -61,7 +57,9 @@ void setup() {
   pinMode(buttonPin1, INPUT_PULLUP);
   pinMode(buttonPin2, INPUT_PULLUP);
 
-
+  snakePosition.x = random(4);
+  snakePosition.y = random(4);
+  snakePosition.z = random(4);
   //SETUP 
   snakeSegments[0].x = snakePosition.x;
   snakeSegments[0].y = snakePosition.y;
@@ -74,15 +72,57 @@ void setup() {
 
 void loop() {
 
-  // check for new direction
+  
   updateDirection();
-
+  boolean moved = false;
   for(int i = 0; i < initialSpeed / (snakeLength + 1); i++){ 
     for(int j = 0; j < snakeLength; j++){
-      toggle(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z, 1);
+      //toggle(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z, 1);
+      turnOn(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
+      delayMicroseconds(500);
+      
+//      int runTime = 0;
+//      for(int alex = 0; alex < 100; alex++){
+////        moved = updateDirection();
+////        if(moved){
+////          runTime = 100000;
+////          Serial.println("HI");
+////        }
+////        //runGame();
+//        Serial.println("PRINTLN");
+//        delayMicroseconds(5);
+//        runTime ++;
+//      }
+//      Serial.println("STOP");
+      
+      turnOff(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
     }
-    toggle(foodPosition.x, foodPosition.y, foodPosition.z, 1);
+    turnOn(foodPosition.x, foodPosition.y, foodPosition.z);
+
+    delayMicroseconds(500);
+    
+//    int runTime = 0;
+//      for(int alex = 0; alex < 100; alex++){
+////        if(updateDirection())
+////          runTime = 100000;
+//        //runGame();
+//        delayMicroseconds(5);
+//        Serial.println("WHAT");
+//        runTime ++;
+//      }
+
+      
+      turnOff(foodPosition.x, foodPosition.y, foodPosition.z);
+    //toggle(foodPosition.x, foodPosition.y, foodPosition.z, 1);
   }
+  
+  runGame();
+  
+
+}
+
+void runGame(){
+
   
   if (/*mspm + lastMove < millis() && */gameRunning) { // time to move the snake
     //lastMove = millis();
@@ -115,19 +155,11 @@ void loop() {
       snakePosition.z = (snakePosition.z + zSpeed) % 4;
     }
 
-//    // boundary conditions
-//    if (snakePosition.x == 255)
-//      snakePosition.x = 7;
-//    if (snakePosition.x == 8)
-//      snakePosition.x = 0;
-//    if (snakePosition.y == 255)
-//      snakePosition.y = 7;
-//    if (snakePosition.y == 8)
-//      snakePosition.y = 0;
-
     // check if snake eats itself
-    if (segmentExists(snakePosition.x, snakePosition.y, snakePosition.z))
+    if (segmentExists(snakePosition.x, snakePosition.y, snakePosition.z) && snakeLength!=4){
+      Serial.println(snakeLength);
       gameRunning = false; 
+    }
 
     // check if snake eats food
     if (snakePosition.x != foodPosition.x || snakePosition.y != foodPosition.y || snakePosition.z != foodPosition.z) 
@@ -158,10 +190,36 @@ void loop() {
 //    col.setAllLow();
 //    row.setAllHigh();
     Serial.println("DEAD");
-    zeroLedArray();
+    zeroLedArray(); 
+//    if(updateDirection()){
+//      reset();
+//    }
   }
-
 }
+
+void reset(){
+  
+  gameRunning = true;
+
+    snakePosition.x = random(4);
+    snakePosition.y = random(4);
+    snakePosition.z = random(4);
+
+  xSpeed = 1;
+  ySpeed = 0;
+  zSpeed = 0;
+  snakeLength = 1;
+  //SETUP 
+  snakeSegments[0].x = snakePosition.x;
+  snakeSegments[0].y = snakePosition.y;
+  snakeSegments[0].z = snakePosition.z;
+  
+  
+  zeroLedArray(); 
+  spawnFood();
+  
+}
+
 void turnOn(int x, int y, int z) {
   digitalWrite(23 + (x + 4*y)*2, LOW);
   digitalWrite(2 + z, HIGH);
@@ -172,13 +230,13 @@ void turnOff(int x, int y, int z) {
   digitalWrite(2 + z, LOW);
 }
 
-void toggle(int x, int y, int z, int t) {
+void toggle(int x, int y, int z, byte t) {
   turnOn(x,y,z);
   delay(t);
   turnOff(x,y,z);
 }
 
-void updateDirection(){
+boolean updateDirection(){
   int left = digitalRead(28);
   int right = digitalRead(30);
   int down = digitalRead(26);
@@ -192,44 +250,50 @@ void updateDirection(){
   if (!left) Serial.println("Left is pressed");
   if (!right) Serial.println("Right is pressed");
 
+  boolean moved = false;
   if(!up && ySpeed != -1)
   {
     xSpeed = 0;
     ySpeed = 1;
     zSpeed = 0;
+    moved = true;
   }
   else if(!down && ySpeed != 1)
   {
     xSpeed = 0;
     ySpeed = -1;
     zSpeed = 0;
+    moved = true;
   }
   else if(!left && xSpeed != 1)
   {
     xSpeed = -1;
     ySpeed = 0;
     zSpeed = 0;
+    moved = true;
   }
   else if(!right && xSpeed != -1)
   {
     xSpeed = 1;
     ySpeed = 0;
     zSpeed = 0;
+    moved = true;
   }
   else if(buttonState1 == LOW && zSpeed != -1)
   {
     xSpeed = 0;
     ySpeed = 0;
     zSpeed = 1;
+    moved = true;
   }
   else if(buttonState2 == LOW && zSpeed != 1)
   {
     xSpeed = 0;
     ySpeed = 0;
     zSpeed = -1;
+    moved = true;
   }
-
-  
+  return moved;
 }
 
 void zeroLedArray() {

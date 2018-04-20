@@ -31,6 +31,9 @@ void(* resetFunc) (void) = 0; //declare reset function @ address 0
 int buttonPin1 = 10;
 int buttonPin2 = 8;
 
+int ledButDown = 22;
+int ledButUp = 24;
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -54,6 +57,9 @@ void setup() {
   pinMode(26, INPUT_PULLUP);
   pinMode(34, INPUT_PULLUP);
 
+  pinMode(22, OUTPUT);
+  pinMode(24, OUTPUT);
+
   
   //BUTTONS --> Change pin values!
 
@@ -70,6 +76,8 @@ void setup() {
   
   zeroLedArray(); 
   spawnFood();
+  digitalWrite(ledButDown, HIGH);
+  digitalWrite(ledButUp, HIGH);
 
   while (digitalRead(buttonPin1) && digitalRead(buttonPin2)) {delay(100);}
 
@@ -89,7 +97,11 @@ void setup() {
   }
   
   zeroLedArray();
+  digitalWrite(ledButDown, LOW);
+  digitalWrite(ledButUp, LOW);
   delay(500);
+  digitalWrite(ledButDown, HIGH);
+  digitalWrite(ledButUp, HIGH);
 }
 
 void loop() {
@@ -98,25 +110,35 @@ void loop() {
   
   boolean moved = false;
   for(int i = 0; i < 300; i++){ 
-    if (!(i % 30)) updateDirection();
+    if (!(i % 25)) updateDirection();
     for(int j = 0; j < snakeLength; j++){
       //toggle(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z, 1);
+      /*if (j == snakeLength - 1) {
+        if ((i > 75 && i < 150) || i > 225) {
+          turnOn(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
+          delayMicroseconds(500-130*sqrt(snakeLength-1));
+      
+          turnOff(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
+        }
+        continue;
+      }*/
       turnOn(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
-      delayMicroseconds(500-130*sqrt(snakeLength-1));
+      delayMicroseconds(max(500-130*sqrt(snakeLength-1), 50));
       
       turnOff(snakeSegments[j].x, snakeSegments[j].y, snakeSegments[j].z);
     }
+    if ((i > 75 && i < 150) || i > 225) {
     turnOn(foodPosition.x, foodPosition.y, foodPosition.z);
 
-    delayMicroseconds(1000-260*sqrt(snakeLength-1));
+    delayMicroseconds(max(1000-260*sqrt(snakeLength-1), 100));
     
     turnOff(foodPosition.x, foodPosition.y, foodPosition.z);
     //Serial.println(i);
+    } else {
+      delayMicroseconds(max(1000-260*sqrt(snakeLength-1), 100));
+    }
   }
-  //Serial.println("WE MADE IT");
   runGame();
-  
-
 }
 
 void runGame(){
@@ -151,6 +173,21 @@ void runGame(){
     else
     {
       snakePosition.z = (snakePosition.z + zSpeed) % 4;
+    }
+
+    if (zSpeed == 0) {
+      digitalWrite(ledButUp, HIGH);
+      digitalWrite(ledButDown, HIGH);
+    }
+    else if (zSpeed == 1) {
+      //Serial.println(zSpeed);
+      digitalWrite(ledButUp, LOW);
+      digitalWrite(ledButDown, HIGH);
+    }
+    else if (zSpeed == 255) {
+      //Serial.println();
+      digitalWrite(ledButUp, HIGH);
+      digitalWrite(ledButDown, LOW);
     }
 
     // check if snake eats itself
@@ -203,10 +240,14 @@ void runGame(){
     }
     zeroLedArray();
     delay(500);
+    for (int tf = 0; tf < 500; ++tf) {
     for (int sc = 0; sc < snakeLength; ++sc) {
       turnOn( (sc % 16) % 4, (sc % 16) / 4, sc / 16);
+      delayMicroseconds(800);
+      turnOff( (sc % 16) % 4, (sc % 16) / 4, sc / 16);
     }
-    delay(4000);
+    }
+    delay(500);
     zeroLedArray();
     resetFunc();
 //    if(updateDirection()){
@@ -340,6 +381,7 @@ void spawnFood() {
 }
 
 boolean segmentExists(byte x, byte y, byte z) {
+  //Serial.println(x);
   for (int i = 0; i < snakeLength; i++) 
     if (snakeSegments[i].x == x && snakeSegments[i].y == y && snakeSegments[i].z == z)
       return true;
